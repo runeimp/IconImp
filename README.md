@@ -1,5 +1,5 @@
-IconImp
-=======
+IconImp v0.9.0
+==============
 
 The iconimp BASH script is a PNG to FavIcon, Mac ICNS, Windows ICO and Web-Clip builder. It was created on a Mac but should also work on Linux and Windows given the proper system support.
 
