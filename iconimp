@@ -3,7 +3,7 @@
 # iconimp: PNG to FavIcon, Mac ICNS, Windows ICO and Web-Clip builder
 #
 # @author	RuneImp <runeimp@gmail.com>
-# @version	0.9.0
+# @version	0.9.1
 #
 ###
 # Options:
@@ -22,7 +22,7 @@
 # Usage:
 # ------
 # iconimp my-icon # Creates a FavIcon, Mac ICNS, Windows ICO and Web-Clips using the base input/file name "my-icon"
-# iconimp -t f 'my fav icon' # Creates a browser favicon.co
+# iconimp -t f 'my fav icon' # Creates a browser favicon.ico
 # iconimp -t fw 'my fav icon' # creates a Windows "my fav icon.ico"
 # 
 ###
@@ -33,10 +33,11 @@
 ###
 # ChangeLog:
 # ----------
+#	2013-08-13	v0.9.1	Reinabled 4-bit color support in Windows ICO, and updated error and warning messages.
 #	2013-08-01	v0.9.0	Initial script creation
 # 
 ###
-# ToDO:
+# ToDo:
 # [ ] Optimize code reuse and logic.
 # [ ] Add resizing of source images to makeup missing icon sizes for FavIcon, ICO and ICNS.
 # [ ] Add support for sips. Though it does not yet support multi-image ICO format creation.
@@ -130,13 +131,13 @@ declare -a webclip_sizes=('57x57' '72x72' '114x114' '120x120' '144x144');
 if [[  -z `which iconutil` && -z `which convert` &&  -z `which identify` ]]
 then
 	echo
-	echo "ERROR: Apple's iconutil and ImageMagick's convert or identify commands are missing"
+	echo "ERROR: Apple's iconutil, ImageMagick's convert and identify commands are missing"
 	exit 1
 fi
 if [[ -z `which iconutil` ]]
 then
 	echo
-	echo "WARNING: Apple's iconutil missing"
+	echo "WARNING: Apple's iconutil missing. ICNS files can not be created."
 fi
 if [[ -z `which convert` &&  -z `which identify` ]]
 then
