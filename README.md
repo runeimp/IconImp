@@ -1,5 +1,5 @@
-IconImp v0.9.1
-==============
+IconImp v0.10.0
+===============
 
 The iconimp BASH script is a PNG to FavIcon, Mac ICNS, Windows ICO and Web-Clip builder. It was created on a Mac but should also work on Linux and Windows given the proper system support.
 
@@ -12,12 +12,15 @@ Basic Usage Examples
 	$ iconimp logo
 
 	# Creates a browser favicon.ico and specifying the input base name explicitly
-	$ iconimp -t f -i 'my fav icon'
+	$ iconimp -t f -i 'my fav icon.png'
 
 	# creates a favicon.ico and Windows "my fav icon.ico"
-	$ iconimp -t fw 'my fav icon'
+	$ iconimp -t fw 'my fav icon.jpg'
 
-Jennifer Vaughn - model_playboy-cybergirl-CGOTY-2013_spanish-italian-slovak-czech_blonde_blue-eyes
+	# Apply an image or ICNS file to a file or folder
+	$ iconimp -a logo.icns
+	or
+	$ iconimp -a "Company Logo.png"
 
 Installation
 ------------

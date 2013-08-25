@@ -2,8 +2,9 @@
 ###########
 # iconimp: PNG to FavIcon, Mac ICNS, Windows ICO and Web-Clip builder
 #
-# @author	RuneImp <runeimp@gmail.com>
-# @version	0.9.1
+# @author   RuneImp <runeimp@gmail.com>
+# @version  0.10.0
+# @license  http://opensource.org/licenses/MIT
 #
 ###
 # Options:
@@ -26,6 +27,12 @@
 # iconimp -t fw 'my fav icon' # creates a Windows "my fav icon.ico"
 # 
 ###
+# Installation
+# ------------
+# 1. iconimp must be in your path and executable.
+# 2. iconimp*.gif must be in the same directory as iconimp (for now)
+# 
+###
 # Error Codes:
 # ------------
 #  1 = Missing all dependencies
@@ -33,15 +40,19 @@
 ###
 # ChangeLog:
 # ----------
-#	2013-08-13	v0.9.1	Reinabled 4-bit color support in Windows ICO, and updated error and warning messages.
-#	2013-08-01	v0.9.0	Initial script creation
+#   2013-08-24  v0.10.0   Added ability to attach an icon to a file or folder using native OS X tools or the multi-platform osxutils if available.
+#                             Fixed files with spaces reference bugs.
+#   2013-08-13  v0.9.1    Reinabled 4-bit color support in Windows ICO, and updated error and warning messages.
+#   2013-08-01  v0.9.0    Initial script creation
 # 
 ###
 # ToDo:
+# -----
 # [ ] Optimize code reuse and logic.
 # [ ] Add resizing of source images to makeup missing icon sizes for FavIcon, ICO and ICNS.
-# [ ] Add support for sips. Though it does not yet support multi-image ICO format creation.
+# [ ] Add support for sips. Though it does not yet support multi-image ICO format creation to my knowledge.
 # [ ] Add support for GraphicsMagick. Though it does not yet support ICO format creation.
+# [ ] Create .iconimp config parser
 #
 
 usage()
@@ -94,12 +105,10 @@ find_match()
 	return 1 # No match found
 }
 
-FIND_MATCH_RE=
-FIND_MATCH_ARRAY=false
-
 i=0
 argc=$#
 argv=("${@}")
+attach_icon=false
 base_path=false
 build_favicon=false
 build_icns=false
@@ -131,7 +140,7 @@ declare -a webclip_sizes=('57x57' '72x72' '114x114' '120x120' '144x144');
 if [[  -z `which iconutil` && -z `which convert` &&  -z `which identify` ]]
 then
 	echo
-	echo "ERROR: Apple's iconutil, ImageMagick's convert and identify commands are missing"
+	echo "ERROR: Apple's iconutil, and ImageMagick's convert or identify commands are missing"
 	exit 1
 fi
 if [[ -z `which iconutil` ]]
@@ -163,12 +172,11 @@ src_path="$base_path/$src_dir"
 ##
 # Processing Command Line Options
 #
-while getopts “df:hi:km:o:s:t:w:” OPTION
+while getopts “a:df:hi:km:o:s:t:w:” OPTION
 do
 	case $OPTION in
-		d)
-			debug=true
-			;;
+		a)	attach_icon="$OPTARG" ;;
+		d)	debug=true ;;
 		f)
 			if [[ ${OPTARG:0:1} == '-' ]];
 				then
@@ -247,11 +255,11 @@ then
 	make_icns=true
 	make_ico=true
 	make_webclip=true
-elif ( ! $input_name );
+elif [[ "$input_name" == false ]];
 then
 	for arg in "${@}";
 	do
-		input_name=$arg
+		input_name="$arg"
 	done
 fi
 
@@ -275,19 +283,71 @@ then
 	exit 69
 fi
 
+##
+# Attach Icon to Target
+if [[ $attach_icon != false ]]; then
+	echo "Attach Icon: $attach_icon"
+	echo "Target Folder: $cwd"
+
+	if [[ `which seticon` ]]; then # if statement broken on purpose. seticon seemed to be having issues in my last tests.
+		echo "osxiconutils seticon"
+		if [[ `seticon -d "$attach_icon" "$cwd"` ]]; then  # Attempt to use osxutils' seticon via ICNS data
+			echo "seticon success"
+		else
+			echo "seticon failure. Must not be an ICNS file. Workaround..."
+			cp "$attach_icon" ./temp_icon
+			sips -i ./temp_icon                                # Giving an icon it's own custom icon resource
+			seticon ./temp_icon "$cwd"                         # Use osxutils' seticon via resource fork       
+			rm ./temp_icon                                     # Cleanup copy
+		fi
+		setfile -a V ./$'Icon\r'                           # Hide the Icon\r file from Finder
+	else
+		echo "SIPS, DeRez, Rez, and SetFile"
+		len=${#attach_icon}
+		let len-=5
+		icon_rsrc="${attach_icon:0:len}.rsrc"
+		# echo "\$icon_rsrc: $icon_rsrc"
+
+		cp "$attach_icon" ./temp_icon                    # Copy custom icon source
+		sips -i ./temp_icon                              # Giving an icon it's own custom icon resource
+		derez -only icns ./temp_icon > "$icon_rsrc"      # Extracting that custom icon resource
+		rm ./temp_icon                                   # Cleanup copy
+
+		# sips -i "$attach_icon"                           # Giving an icon it's own custom icon resource
+		# derez -only icns "$attach_icon" > "$icon_rsrc"   # Extracting that custom icon resource
+
+		rez -a "$icon_rsrc" -o ./$'Icon\r'               # Applying the custom icon resource to a folder
+		# echo rez -a -ov "$icon_rsrc" -o ./$'Icon\r'      # Forcing (overwriting) the custom icon resource of a folder
+		setfile -a C .                                   # Enable custom icon display
+		setfile -a V ./$'Icon\r'                         # Hide the Icon\r file from Finder
+		rm "$icon_rsrc"
+	fi
+	exit 0
+fi
+
+##
+# If making icons move images into $src_path if we aren't already there
+#
 if [[ $make_favicon || $make_icns || $make_ico || $make_webclip ]]
 then
-	if [[ $base_path ]];
+	echo "DEBUG: Line $LINENO"
+	if [[ ! -z $base_path ]];
 	then
-		if [[ "$cwd" == "$src_path" ]];
+		echo "DEBUG: Line $LINENO"
+
+		dir_name=`basename "$cwd"`
+
+		if [[ "$dir_name" == "$src_dir" ]];
 		then
+			base_path=`dirname "$cwd"`
+			src_path="$base_path/$src_dir"
+			# echo "Going to '$base_path'"
 			cd "$base_path"
-		elif [[ ! -d "$src_path" ]]
-		then
+		else
 			echo
 			echo "  Building $src_dir and moving images to it..."
 			mkdir -p "$src_path"
-			mv $input_name*.png "$src_path"
+			mv "$input_name"*.png "$src_path"
 		fi
 	else
 		echo "ERROR: $base_path note defined"
@@ -307,20 +367,20 @@ then
 	eight_bit=false
 
 	cd "$base_path"
-	mkdir "favicon.ico-set"
+	mkdir "favicon.ico-set" > /dev/null
 	cd "$src_path"
 
-	for file in $input_name*.png;
+	for file in "$input_name"*.png;
 	do
 		# echo "\$file: $file"
 		img="$src_path/$file"
-		img_data=`identify $img`
+		img_data=`identify "$img"`
 
 		if ( find_match "$img_data" favicon_sizes[@] );
 		then
 			if [[ "$img_data" =~ ([0-9]+x[0-9]+) ]];
 			then
-				# echo "\$file: $file"
+				# echo "Size Match \${BASH_REMATCH[1]}: ${BASH_REMATCH[1]}"
 				eight_bit=false
 				case "${BASH_REMATCH[1]}" in
 					'32x32') eight_bit=true ;;
@@ -367,14 +427,14 @@ then
 	build_icns=false
 
 	cd "$base_path"
-	mkdir "$input_name.iconset"
+	mkdir "$output_name.iconset"
 	cd "$src_path"
 	
-	for file in $input_name*.png;
+	for file in "$input_name"*.png;
 	do
 		# echo "\$file: $file"
 		img="$src_path/$file"
-		img_data=`identify $img`
+		img_data=`identify "$img"`
 
 		if ( find_match "$img_data" icns_sizes[@] );
 		then
@@ -385,28 +445,28 @@ then
 				# echo "Size $size"
 				case $size in
 					'1024x1024')
-						cp "${img}" "${base_path}/${input_name}.iconset/icon_512x512@2x.png"
+						cp "${img}" "${base_path}/${output_name}.iconset/icon_512x512@2x.png"
 						;;
 					'512x512')
-						cp "${img}" "${base_path}/${input_name}.iconset/icon_${size}.png"
-						cp "${img}" "${base_path}/${input_name}.iconset/icon_256x256@2x.png"
+						cp "${img}" "${base_path}/${output_name}.iconset/icon_${size}.png"
+						cp "${img}" "${base_path}/${output_name}.iconset/icon_256x256@2x.png"
 						;;
 					'256x256')
-						cp "${img}" "${base_path}/${input_name}.iconset/icon_${size}.png"
-						cp "${img}" "${base_path}/${input_name}.iconset/icon_128x128@2x.png"
+						cp "${img}" "${base_path}/${output_name}.iconset/icon_${size}.png"
+						cp "${img}" "${base_path}/${output_name}.iconset/icon_128x128@2x.png"
 						;;
 					'128x128')
-						cp "${img}" "${base_path}/${input_name}.iconset/icon_${size}.png"
+						cp "${img}" "${base_path}/${output_name}.iconset/icon_${size}.png"
 						;;
 					'64x64')
-						cp "${img}" "${base_path}/${input_name}.iconset/icon_32x32@2x.png"
+						cp "${img}" "${base_path}/${output_name}.iconset/icon_32x32@2x.png"
 						;;
 					'32x32')
-						cp "${img}" "${base_path}/${input_name}.iconset/icon_${size}.png"
-						cp "${img}" "${base_path}/${input_name}.iconset/icon_16x16@2x.png"
+						cp "${img}" "${base_path}/${output_name}.iconset/icon_${size}.png"
+						cp "${img}" "${base_path}/${output_name}.iconset/icon_16x16@2x.png"
 						;;
 					'16x16')
-						cp "${img}" "${base_path}/${input_name}.iconset/icon_${size}.png"
+						cp "${img}" "${base_path}/${output_name}.iconset/icon_${size}.png"
 						;;
 				esac
 				build_icns=true
@@ -417,13 +477,13 @@ then
 	if [[ $build_icns == true ]];
 	then
 		cd ".."
-		iconutil -c icns -o "$input_name.icns" "$input_name.iconset"
+		iconutil -c icns -o "$output_name.icns" "$output_name.iconset" > /dev/null
 	fi
 
 	if [[ $keep_set_dir == false ]]
 	then
 		cd "$base_path"
-		rm -Rf "$input_name.iconset"
+		rm -Rf "$output_name.iconset"
 	fi
 fi
 
@@ -440,14 +500,14 @@ then
 	eight_bit=false
 
 	cd "$base_path"
-	mkdir "$input_name.ico-set"
+	mkdir "$output_name.ico-set" > /dev/null
 	cd "$src_path"
 	
-	for file in $input_name*.png;
+	for file in "$input_name"*.png;
 	do
 		# echo "\$file: $file"
 		img="$src_path/$file"
-		img_data=`identify $img`
+		img_data=`identify "$img"`
 
 		if ( find_match "$img_data" ico_sizes[@] );
 		then
@@ -461,11 +521,11 @@ then
 					'16x16') eight_bit=true ;;
 				esac
 
-				cp "$img" "$base_path/$input_name.ico-set/icon_${BASH_REMATCH[1]}.png"
+				cp "$img" "$base_path/$output_name.ico-set/icon_${BASH_REMATCH[1]}.png"
 				if ( $eight_bit );
 				then
-					# convert -depth 4 -colors 16 "$img" -remap "$colormap_path/iconimp-ega.gif" "$base_path/$input_name.ico-set/icon_${BASH_REMATCH[1]}_4-bit.ico"
-					convert -depth 8 -colors 256 "$img" +dither -remap "$colormap_path/iconimp-winxp.gif" "$base_path/$input_name.ico-set/icon_${BASH_REMATCH[1]}_8-bit.png"
+					convert -depth 4 -colors 16 "$img" -remap "$colormap_path/iconimp-ega.gif" "$base_path/$output_name.ico-set/icon_${BASH_REMATCH[1]}_4-bit.ico"
+					convert -depth 8 -colors 256 "$img" +dither -remap "$colormap_path/iconimp-winxp.gif" "$base_path/$output_name.ico-set/icon_${BASH_REMATCH[1]}_8-bit.png"
 				fi
 				build_ico=true
 			fi
@@ -474,15 +534,18 @@ then
 
 	if [[ $build_ico == true ]];
 	then
-		cd "../$input_name.ico-set"
-		images=`ls -S`
-		convert $images "../$input_name.ico"
+		# echo "cd $base_path/$output_name.ico-set"
+		cd "$base_path/$output_name.ico-set"
+		# images=`ls -S`
+		images=`ls`
+		# echo "\$images: $images"
+		convert $images "../$output_name.ico"
 	fi
 
 	if [[ $keep_set_dir == false ]]
 	then
 		cd "$base_path"
-		rm -Rf "$input_name.ico-set"
+		rm -Rf "$output_name.ico-set"
 	fi
 fi
 
@@ -522,11 +585,11 @@ then
 		loose_size_match=''
 		max_size_match=''
 
-		for file in $input_name*.png;
+		for file in "$input_name"*.png;
 		do
 			# echo "\$file: $file"
 			img="$src_path/$file"
-			img_data=`identify $img`
+			img_data=`identify "$img"`
 
 			if [[ "$img_data" =~ ([0-9]+)x[0-9]+ ]];
 			then
