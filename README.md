@@ -78,20 +78,51 @@ Installation
 
 **Note:** The two GIF files must exist in the same directory as `iconimp` so that the script file can find them to create the full featured Windows ICO file.
 
+
 OS Support
 ----------
 
+
 ### Mac
+
+#### ICOimp & ICNSimp
+
+Both scripts use `sips` for image resizing. This is a Mac only utility as far as I can tell. But I will add ImageMagic/GraphicsMagic support in the future for use on other platforms.
+
+#### IconImp
 
 Currently the script reliese on ImageMagick for image resizing and source image size info. But in the near future will use the native program `sips` to be used for source image size info and image resizing when ImageMagick is not present. Though ImageMagick must still be present to create FavIcon and Windows ICO files. As well as producing generally higher quality icons in any format. Note that depending on your version of OS X you may need to install `iconutil` to support ICNS creation by installing Xcode and then check Xcode Preferences > Downloads > Components and download the "Command Line Tools".
 
+
 ### Linux
+
+#### ICOimp
+
+This script will not work on Linux currently as it only supports `sips` for image resizing at this time.
+
+#### ICNSimp
+
+This script is just a helper for the Mac only `iconutil` command line tool and thus is useless on any other platform.
+
+#### IconImp
 
 This script has not been tested on Linux yet but is expected to work normally given that ImageMagick is installed where `iconimp` can access both the `convert` and `identify` commands. To my knowledge there is no Linux version of `iconutil`. Thus Mac ICNS file creation is not possible on Linux. Though if I can find a way I will add such support.
 
+
 ### Windows
 
+#### ICOimp
+
+This script will not work on Windows currently as it only supports `sips` for image resizing at this time.
+
+#### ICNSimp
+
+This script is just a helper for the Mac only `iconutil` command line tool and thus is useless on any other platform.
+
+#### IconImp
+
 This script has not been tested in Windows yet but is expected to work via MSYS or Cygwin as long as ImageMagick is installed where it is accessible by BASH in those environments. To my knowledge there is no Windows version of `iconutil`. Thus Mac ICNS file creation is not possible on Windows. Though if I can find a way I will add such support.
+
 
 Image Formats Supported
 -----------------------
@@ -104,7 +135,7 @@ Only the PNG format is supported for source images at this time. Though other im
 
 #### FavIcon
 
-By default this is a standard Windows ICO file with the sizes 16&times;16, 24&times;24, 32&times;32, 48&times;48, 64&times;64 stored internally. ICO is the only format at this time that is supported by all browsers that support the FavIcon concept.
+By default this is a standard Windows ICO file with the sizes 16&times;16, 24&times;24, 32&times;32, 48&times;48 stored internally. ICO is the only format at this time that is supported by all browsers that support the FavIcon concept.
 
 #### Windows ICO
 
