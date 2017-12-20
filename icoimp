@@ -228,12 +228,19 @@ function resize_img()
 {
 	local img_size=$1
 	local img_8bit=$2
+	local img_dim="${img_size}x${img_size}"
 
-	sips "$src_img" --out "$iconset_dir/icon_${img_size}x${img_size}-24bit.png" --setProperty format png -Z $img_size > /dev/null
-	if [[ $img_8bit == true ]]; then
-		sips "$src_img" --out "$iconset_dir/icon_${img_size}x${img_size}-8bit.gif" --setProperty format gif -Z $img_size > /dev/null
-		sips "$iconset_dir/icon_${img_size}x${img_size}-8bit.gif" --out "$iconset_dir/icon_${img_size}x${img_size}-8bit.png" --setProperty format png > /dev/null
-		rm "$iconset_dir/icon_${img_size}x${img_size}-8bit.gif"
+	if [[ `which sips` ]]; then
+		sips "$src_img" --out "$iconset_dir/icon_${img_dim}-24bit.png" --setProperty format png -Z $img_size > /dev/null
+		if [[ $img_8bit == true ]]; then
+			sips "$src_img" --out "$iconset_dir/icon_${img_dim}-8bit.gif" --setProperty format gif -Z $img_size > /dev/null
+			sips "$iconset_dir/icon_${img_dim}-8bit.gif" --out "$iconset_dir/icon_${img_dim}-8bit.png" --setProperty format png > /dev/null
+			rm "$iconset_dir/icon_${img_dim}-8bit.gif"
+		fi
+	elif [[ `which gm` ]]; then
+		gm convert -size "$img_dim" "$src_img" -resize "$img_dim" +profile "*" "$iconset_dir/icon_${img_dim}-24bit.png"
+	else
+		convert -size "$img_dim" "$src_img" -resize "$img_dim" +profile "*" "$iconset_dir/icon_${img_dim}-24bit.png"
 	fi
 }
 
