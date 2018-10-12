@@ -46,7 +46,7 @@ The following data is illustrative but should not be considered de facto standar
 | :-:            | :-----: | :------: | ----:              | :---------: |
 | Win10          | 768×768 | 32       | 16,777,216 + alpha | PNG         |
 | WinVista       | 256×256 | 32       | 16,777,216 + alpha | PNG         |
-| WinXP          | 48×48   | 24       | 16,777,216         | ?           |
+| WinXP          | 48×48   | 24       | 16,777,216         | none?       |
 | Win95+MS Plus! | 256×256 | 16       | 65,536             | none        |
 | Win95          | 32×32   | 8        | 256                | none        |
 | Win32          | 256×256 | 24       | 16,777,216         | none        |
@@ -58,23 +58,31 @@ The following data is illustrative but should not be considered de facto standar
 Installation
 ------------
 
-**Option 1:** Copy the files `icoimp`, `icnsimp`, `iconimp`, `iconimp-ega.gif`, and `iconimp-winxp.gif` to your personal `bin` directory. Good for single user or restricted systems.
+**Option 1:** Symlink the files `icnsimp.bash`, `icoimp.bash`, `iconimp.bash`, `iconimp-ega.gif`, and `iconimp-winxp.gif` to your personal `bin` directory. Good for single user or restricted systems.
 
+	$ cd ~
+	$ mkdir repos
+	$ cd repos
 	$ git clone https://github.com/runeimp/IconImp.git
-	$ cd IconImp
-	$ cp ic* ~/bin/
+	$ cd "$HOME/.local/bin"
+	-or-
+	$ cd "$HOME/bin"
+	$ ln -s ~/repos/IconImp/icnsimp.bash icnsimp
+	$ ln -s ~/repos/IconImp/icoimp.bash icoimp
+	$ ln -s ~/repos/IconImp/iconimp.bash iconimp
+	$ ln -s ~/repos/IconImp/*.gif .
 
-**Option 2:** Copy the files `icoimp`, `icnsimp`, `iconimp`, `iconimp-ega.gif`, and `iconimp-winxp.gif` to your local `bin` directory. Good for easy access by all system users.
+**Option 2:** Symlink the files `icnsimp.bash`, `icoimp.bash`, `iconimp.bash`, `iconimp-ega.gif`, and `iconimp-winxp.gif` to your local `bin` directory. Good for easy access by all system users.
 
+	$ cd /usr/local
+	$ mkdir repos
+	$ cd repos
 	$ git clone https://github.com/runeimp/IconImp.git
-	$ cd IconImp
-	$ cp ic* /usr/local/bin/
-
-**Option 3:** Copy the files `icoimp`, `icnsimp`, `iconimp`, `iconimp-ega.gif`, and `iconimp-winxp.gif` to your global `bin` directory. *Not recommended.* But provided for completeness.
-
-	$ git clone https://github.com/runeimp/IconImp.git
-	$ cd IconImp
-	$ cp ic* /usr/bin/
+	$ cd /usr/local/bin/
+	$ ln -s /usr/local/IconImp/icnsimp.bash icnsimp
+	$ ln -s /usr/local/IconImp/icoimp.bash icoimp
+	$ ln -s /usr/local/IconImp/iconimp.bash iconimp
+	$ ln -s /usr/local/IconImp/*.gif .
 
 **Note:** The two GIF files must exist in the same directory as `iconimp` so that the script file can find them to create the full featured Windows ICO file.
 
@@ -135,7 +143,7 @@ Only the PNG format is supported for source images at this time. Though other im
 
 #### FavIcon
 
-By default this is a standard Windows ICO file with the sizes 16&times;16, 24&times;24, 32&times;32, 48&times;48 stored internally. ICO is the only format at this time that is supported by all browsers that support the FavIcon concept.
+By default for ICOimp this is a standard Windows ICO file with the sizes 16&times;16, 24&times;24, 32&times;32, stored internally. ICO is the only format at this time that is supported by all browsers that support the FavIcon concept.
 
 #### Windows ICO
 
@@ -143,7 +151,7 @@ By default `iconimp` creates a standard Windows ICO file with the sizes 16&times
 
 #### Mac OS X ICNS
 
-By default `iconimp` uses iconutil (on the Mac only) to create a High Quality ICNS file that supports both normal and Retina icon sizes. The source images should be in the sizes: 16&times;16, 32&times;32, 64&times;64, 128&times;128, 256&times;256, 512&times;512, 1024&times;1024.
+By default IconImp and ICNSimp use `iconutil` (on the Mac only) to create a High Quality ICNS file that supports both normal and Retina icon sizes. The source images should be in the sizes: 16&times;16, 32&times;32, 64&times;64, 128&times;128, 256&times;256, 512&times;512, 1024&times;1024.
 
 #### Smartphone Web-Clips
 
