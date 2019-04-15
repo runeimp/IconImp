@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>This is an HTML template</title>
+	<style>
+		html, body {
+			font-family: sans-serif;
+			margin: 0;
+			text-align: center;
+		}
+		header, footer {
+			background-color: silver;
+			padding: 0.5em;
+		}
+		main {
+			padding: 0.5em;
+		}
+		footer {
+			bottom: 0;
+			left: 0;
+			position: fixed;
+			width: 100%;
+		}
+	</style>
+
+	<!-- Chrome, Safari, IE 6-10 -->
+	<link rel="shortcut icon" href="path/to/favicon.ico">
+	
+	<!-- Everybody else -->
+	<link rel="icon" href="path/to/favicon.ico">
+
+	<!-- Firefox, Opera (Chrome and Safari say thanks but no thanks) -->
+	<link rel="icon" href="path/to/favicon.png">
+
+	<link rel="icon" href="favicon-16.png" sizes="16x16">
+	<link rel="icon" href="favicon-32.png" sizes="32x32">
+	<link rel="icon" href="favicon-48.png" sizes="48x48">
+	<link rel="icon" href="favicon-64.png" sizes="64x64">
+	<link rel="icon" href="favicon-128.png" sizes="128x128">
+
+	<!-- I "support" IE6. I don't know why... -->
+	<!--[if IE 6]><script>(new Image).src="path/to/favicon.ico"</script><![endif]-->
+
+	<script>
+		if(navigator.userAgent.match(/(Android|iOS|iPhone|iPod|iPad)/i)) {
+			document.title = "Touch Me"; // 16 characters or fewer (including spaces)
+		}
+	</script>
+</head>
+<body>
+	<header>
+		<h1>This is an HTML template</h1>
+		<h2>Thank you IconImp!</h2>
+	</header>
+	<main>
+		So much good content. I can't believe my eyes!
+	</main>
+	<footer>
+		<p>The best footer ever! Your welcome. <span style="font-family: monospace">:-)</span></p>
+	</footer>
+</body>
+</html>

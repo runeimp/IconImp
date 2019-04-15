@@ -1,0 +1,26 @@
+# EditorConfig is awesome: http://EditorConfig.org
+
+# top-most EditorConfig file
+root = true
+
+# Defaults for Go and Just
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_white_space = true
+indent_style = tab
+indent_size = 4
+tab_width = 4
+
+# Formats that can REQUIRE two spaces
+[*.{json,yaml,yml}]
+indent_style = space
+indent_size = 2
+tab_width = 2
+trim_trailing_white_space = false
+
+# Markdown formatting
+[*.md]
+indent_style = space
+trim_trailing_white_space = false
