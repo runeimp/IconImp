@@ -12,19 +12,18 @@ package main
 // IMPORTS
 //
 import (
-	"bufio"
 	"bytes"
 	"fmt"
 	"image"
 	"image/jpeg"
 	"image/png"
 	"io"
+	"io/ioutil"
 	"log"
 	"os"
 	"path"
 	"path/filepath"
 	"strings"
-	"time"
 
 	arg "github.com/alexflint/go-arg"
 	ico "github.com/biessek/golang-ico"
@@ -194,28 +193,6 @@ type fileData struct {
 
 var inputFile *fileData
 
-func getInput(input chan byte) {
-	in := bufio.NewReader(os.Stdin)
-	var i uint
-	for {
-		result, err := in.ReadByte()
-		// result, err := in.ReadBytes()
-		if err != nil {
-			if err == io.EOF {
-				// log.Printf("getInput() | EOF | %s\n", err)
-				break
-			} else {
-				log.Fatalf("getInput() | %s\n", err)
-			}
-		}
-		if i < 0 {
-			fmt.Printf("getInput() | result = 0x%0.2X\n", result)
-		}
-		i++
-		input <- result
-	}
-}
-
 func check(e error) {
 	if e != nil {
 		panic(e)
@@ -247,30 +224,18 @@ func main() {
 
 	inputFile = &fileData{}
 
-	input := make(chan byte, 1)
-	go getInput(input)
-
-InputTest:
-	for {
-		select {
-		case aByte := <-input:
-			if inputFile.Bytes == nil {
-				inputFile.Bytes = []byte{aByte}
-			} else {
-				inputFile.Bytes = append(inputFile.Bytes, aByte)
-			}
-			if inputFile.Kind == "" {
-				kind, _ := filetype.Match(inputFile.Bytes)
-				if kind != filetype.Unknown {
-					inputFile.Kind = kind.MIME.Value
-					inputFile.Extension = kind.Extension
-					fmt.Printf("File type: %s  MIME: %s\n", strings.ToUpper(inputFile.Extension), inputFile.Kind)
-				}
-			}
-		case <-time.After(1000 * time.Millisecond):
-			break InputTest
-		}
+	fi, _ := os.Stdin.Stat()
+	if (fi.Mode() & os.ModeCharDevice) == 0 {
+		// Data is from a Pipe
+		inputFile.Bytes, _ = ioutil.ReadAll(os.Stdin)
 	}
+	kind, _ := filetype.Match(inputFile.Bytes)
+	if kind != filetype.Unknown {
+		inputFile.Kind = kind.MIME.Value
+		inputFile.Extension = kind.Extension
+		fmt.Printf("File type: %s  MIME: %s\n", strings.ToUpper(inputFile.Extension), inputFile.Kind)
+	}
+
 	inputFile.Size = uint(len(inputFile.Bytes))
 	log.Printf("%d Bytes", inputFile.Size)
 
