@@ -39,7 +39,7 @@ import (
 const (
 	AppName    AppMetaData = "IconImp"
 	AppDesc    AppMetaData = "A cross-platform ICO, ICNS, and Web Icons generator."
-	AppVersion AppMetaData = "0.1.0"
+	AppVersion AppMetaData = "1.0.0"
 	CLIName    AppMetaData = "iconimp"
 )
 
@@ -199,6 +199,15 @@ func check(e error) {
 	}
 }
 
+func icnsWrite(imgName string, imgData *fileData) error {
+	imgName = fmt.Sprintf("%s.icns", imgName)
+	f, err := os.Create(imgName)
+	check(err)
+	err = icns.Encode(f, imgData.Image)
+	check(err)
+	return err
+}
+
 func icoWrite(imgName string, imgData *fileData) error {
 	imgName = fmt.Sprintf("%s.ico", imgName)
 	f, err := os.Create(imgName)
@@ -247,6 +256,11 @@ func main() {
 	if args.WinVista {
 		if len(args.Name) > 0 && inputFile.Size > 0 {
 			icoWrite(args.Name, inputFile)
+		}
+	}
+	if args.MacOS {
+		if len(args.Name) > 0 && inputFile.Size > 0 {
+			icnsWrite(args.Name, inputFile)
 		}
 	}
 
